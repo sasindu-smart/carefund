@@ -10,7 +10,7 @@ Two ways to give: help an **individual** through a verified grant or loan, or do
 
 **Companion project:** [Allowance](https://github.com/sasindu-smart/allowance) is my other, independent hackathon project (an AI agent that spends only inside rules enforced by a NEAR contract). The two projects share no code.
 
-**Try it (nothing to install):** the public demo link is added here after deployment. Or run it locally in one minute, below.
+**Try it (nothing to install):** **https://carefund-ijf9.onrender.com** (app: [/app](https://carefund-ijf9.onrender.com/app)). The free host can take about a minute to wake on the first visit. Or run it locally in one minute, below.
 
 ## The problem
 
