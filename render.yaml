@@ -1,0 +1,13 @@
+# One-click hosting on Render (free plan). The public demo runs in "demo" mode:
+# everything happens in the visitor's browser, no keys, no wallet, no real money.
+services:
+  - type: web
+    name: carefund
+    runtime: node
+    plan: free
+    buildCommand: echo "nothing to build"
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_VERSION
+        value: "20"

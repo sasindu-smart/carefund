@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>CareFund · Help that reaches the right hand</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='11' fill='%230d8a7d'/%3E%3Cpath d='M20 31s-9-5.6-9-12.2A5.3 5.3 0 0 1 20 15.6a5.3 5.3 0 0 1 9 3.2C29 25.4 20 31 20 31z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f3f8f6; --panel: #ffffff; --panel-hi: #ffffff; --line: #d8e5e1; --hair: rgba(15,42,46,.09);
+    --ink: #0f2a2e; --muted: #587074; --gold: #0d8a7d; --gold-deep: #0a6f65; --on-gold: #ffffff;
+    --allow: #17805f; --allow-bg: rgba(23,128,95,.09); --allow-line: rgba(23,128,95,.32);
+    --hold: #c4690f; --hold-bg: rgba(196,105,15,.09); --hold-line: rgba(196,105,15,.32);
+    --block: #c23b4e; --block-bg: rgba(194,59,78,.08); --block-line: rgba(194,59,78,.3);
+    --quiet: rgba(15,42,46,.05);
+    --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+    --body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 400 15.5px/1.55 var(--body); min-height: 100vh;
+    background-image: radial-gradient(900px 460px at 85% -120px, rgba(13,138,125,.13), transparent 70%), radial-gradient(700px 360px at -5% 20%, rgba(23,128,95,.06), transparent 70%); background-repeat: no-repeat; }
+  a { color: inherit; } :focus-visible { outline: 3px solid #8fb4ff; outline-offset: 2px; border-radius: 6px; }
+  h1, h2, h3 { font-family: var(--display); margin: 0; letter-spacing: -0.02em; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 22px; }
+  .mono { font-family: var(--mono); font-size: .88em; }
+  [hidden] { display: none !important; }
+
+  .bar { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(14px); background: rgba(243,248,246,.86); border-bottom: 1px solid var(--hair); }
+  .bar .wrap { display: flex; align-items: center; justify-content: space-between; gap: 14px; height: 66px; }
+  .logo { display: flex; align-items: center; gap: 11px; font: 800 20px/1 var(--display); cursor: pointer; }
+  .logo svg { width: 32px; height: 32px; }
+  .nav { display: flex; align-items: center; gap: 4px; }
+  .nav button { color: var(--muted); padding: 8px 13px; font-weight: 500; border-radius: 10px; }
+  .nav button:hover { color: var(--ink); } .nav button[aria-current="page"] { color: var(--ink); background: var(--quiet); }
+  .pill { display: inline-flex; align-items: center; gap: 7px; font: 500 13px var(--body); padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); background: #fff; color: var(--muted); white-space: nowrap; }
+  .pill i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .pill.ok { color: var(--allow); border-color: var(--allow-line); background: var(--allow-bg); }
+  .pill.hold { color: var(--hold); border-color: var(--hold-line); background: var(--hold-bg); }
+  .pill.block { color: var(--block); border-color: var(--block-line); background: var(--block-bg); }
+  .pill.gold { color: var(--gold); border-color: rgba(13,138,125,.35); }
+  @media (max-width: 860px) { .nav { display: none; } .mnav { display: flex !important; } }
+  .mnav { display: none; gap: 6px; overflow-x: auto; padding: 8px 22px 0; max-width: 1180px; margin: 0 auto; }
+  .mnav button { padding: 6px 12px; font-size: 13px; background: #fff; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); white-space: nowrap; }
+  .mnav button[aria-current="page"] { color: var(--ink); background: var(--quiet); }
+
+  button { font: 600 14px var(--body); border-radius: 11px; padding: 10px 17px; border: 1px solid transparent; cursor: pointer; transition: transform .06s, background .15s, border-color .15s, filter .15s; color: var(--ink); background: none; }
+  button:active { transform: translateY(1px); } button:disabled { opacity: .5; cursor: progress; }
+  .b-gold { background: linear-gradient(180deg, #14a393, var(--gold-deep)); color: #fff; box-shadow: 0 6px 16px rgba(13,138,125,.25); } .b-gold:hover:not(:disabled) { filter: brightness(1.06); }
+  .b-ghost { border-color: var(--line); background: #fff; } .b-ghost:hover:not(:disabled) { border-color: var(--gold); }
+  .b-danger { border-color: var(--block-line); color: var(--block); background: #fff; } .b-danger:hover:not(:disabled) { background: var(--block-bg); }
+  .b-ok { background: var(--allow); color: #fff; } .b-ok:hover:not(:disabled) { filter: brightness(1.07); }
+  .b-hold { background: var(--hold); color: #fff; } .b-hold:hover:not(:disabled) { filter: brightness(1.07); }
+  .b-sm { padding: 7px 13px; font-size: 13.5px; border-radius: 9px; }
+
+  .demo { border-bottom: 1px solid var(--hair); background: linear-gradient(90deg, rgba(196,105,15,.08), rgba(13,138,125,.05)); }
+  .demo .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding-top: 10px; padding-bottom: 10px; font-size: 13.5px; }
+  .demo .sp { flex: 1 1 0; min-width: 0; }
+  .demo b { font-weight: 600; } .demo .sp { flex: 1; }
+  select, input, textarea { font: 500 14.5px var(--body); color: var(--ink); background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; width: 100%; }
+  select:focus, input:focus, textarea:focus { outline: none; border-color: var(--gold); }
+  select option { background: #fff; color: #0f2a2e; }
+  .demo select { width: auto; max-width: 250px; padding: 6px 10px; font-size: 13.5px; }
+  textarea { resize: vertical; min-height: 84px; }
+  label.f { display: grid; gap: 6px; color: var(--muted); font-size: 13.5px; font-weight: 500; }
+  label.f small { color: var(--muted); font-weight: 400; font-size: 12.5px; }
+
+  .hero { padding: 40px 0 8px; max-width: 760px; }
+  .hero h1 { font-size: clamp(32px, 5vw, 52px); font-weight: 800; line-height: 1.05; }
+  .hero h1 em { font-style: normal; color: var(--gold); }
+  .hero p { color: var(--muted); font-size: 17px; margin: 14px 0 0; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 26px 0 8px; }
+  @media (max-width: 900px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+  .card { border: 1px solid var(--line); border-radius: 18px; background: #fff; box-shadow: 0 1px 2px rgba(15,42,46,.04), 0 10px 28px rgba(15,42,46,.05); }
+  .stat { padding: 18px 20px; } .stat .k { color: var(--muted); font-size: 13.5px; }
+  .stat .v { font: 800 32px/1.1 var(--display); letter-spacing: -0.03em; margin: 6px 0 2px; font-variant-numeric: tabular-nums; }
+  .stat .v small { font: 500 14px var(--body); color: var(--gold); margin-left: 6px; letter-spacing: 0; }
+  .stat .s { color: var(--muted); font-size: 13px; }
+
+  .sec { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; margin: 30px 0 14px; }
+  .sec h2 { font-size: 24px; } .sub { color: var(--muted); font-size: 14px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font: 500 13px var(--body); padding: 6px 13px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); background: transparent; }
+  .chip:hover { color: var(--ink); } .chip { background: #fff; } .chip[aria-pressed="true"] { background: var(--gold); color: #fff; border-color: var(--gold); }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  @media (max-width: 980px) { .grid { grid-template-columns: repeat(2, 1fr); } } @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+  .case { padding: 20px; display: flex; flex-direction: column; gap: 6px; cursor: pointer; transition: border-color .15s, transform .15s; text-align: left; }
+  .case:hover { border-color: rgba(13,138,125,.55); box-shadow: 0 14px 32px rgba(13,138,125,.12); transform: translateY(-2px); }
+  .case h3 { font-size: 19px; line-height: 1.25; margin-top: 8px; } .case .by { color: var(--muted); font-size: 13px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .tag { font: 700 11.5px var(--body); letter-spacing: .04em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; border: 1px solid; }
+  .tag.grant { color: var(--allow); background: var(--allow-bg); border-color: var(--allow-line); }
+  .tag.loan { color: var(--hold); background: var(--hold-bg); border-color: var(--hold-line); }
+  .tag.campaign { color: #0a6f65; background: rgba(13,138,125,.1); border-color: rgba(13,138,125,.35); }
+  .prov { padding: 20px; display: flex; flex-direction: column; gap: 6px; text-align: left; cursor: pointer; transition: border-color .15s, transform .15s; }
+  .prov:hover, .prov[aria-pressed="true"] { border-color: rgba(13,138,125,.6); transform: translateY(-2px); }
+  .prov h3 { font-size: 19px; margin-top: 6px; } .prov .by { color: var(--muted); font-size: 13px; }
+  .prov .lic { font: 400 12px var(--mono); color: var(--muted); }
+  .seg3 { grid-template-columns: repeat(3, 1fr) !important; } @media (max-width: 560px) { .seg3 { grid-template-columns: 1fr !important; } }
+  .seg button.campaign[aria-pressed="true"] { border-color: var(--gold); background: rgba(13,138,125,.1); }
+  .ph { padding: 16px 20px; border-bottom: 1px solid var(--hair); }
+  #auList .ev { display: grid; grid-template-columns: 34px 1fr auto; gap: 14px; padding: 14px 20px; border-bottom: 1px solid var(--hair); align-items: start; } #auList .ev:last-child { border-bottom: 0; }
+  .ic { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--line); background: var(--quiet); color: var(--muted); font-weight: 700; }
+  .ic.ok { color: var(--allow); background: var(--allow-bg); border-color: var(--allow-line); } .ic.hold { color: var(--hold); background: var(--hold-bg); border-color: var(--hold-line); } .ic.block { color: var(--block); background: var(--block-bg); border-color: var(--block-line); }
+  .ev .t { font-size: 14.5px; overflow-wrap: anywhere; } .ev .t b { font-weight: 600; font-family: var(--mono); font-size: 13px; } .ev .s { color: var(--muted); font-size: 12.5px; margin-top: 2px; } .ev .tm { color: var(--muted); font-size: 12.5px; text-align: right; white-space: nowrap; }
+  .appl { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 0; border-bottom: 1px solid var(--hair); } .appl:last-child { border: 0; } .appl small { display: block; color: var(--muted); font-size: 12.5px; }
+  .tag.st { color: var(--muted); border-color: var(--line); background: var(--quiet); text-transform: none; letter-spacing: 0; font-weight: 600; }
+  .tag.st.ok { color: var(--allow); border-color: var(--allow-line); background: var(--allow-bg); }
+  .tag.st.hold { color: var(--hold); border-color: var(--hold-line); background: var(--hold-bg); }
+  .tag.st.block { color: var(--block); border-color: var(--block-line); background: var(--block-bg); }
+  .ver { color: var(--allow); font-size: 12.5px; font-weight: 600; }
+  .track { height: 7px; border-radius: 6px; background: #e1ece9; overflow: hidden; margin: 12px 0 4px; } .fill { height: 100%; border-radius: 6px; background: linear-gradient(90deg, #27b58f, var(--allow)); }
+  .fill.loan { background: linear-gradient(90deg, #e0993f, var(--hold)); } .fill.gold { background: linear-gradient(90deg, var(--gold-deep), var(--gold)); }
+  .row { display: flex; justify-content: space-between; gap: 10px; font-size: 13.5px; color: var(--muted); } .row b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .pay { margin-top: 8px; font-size: 13px; color: var(--muted); } .pay code { font: 400 12.5px var(--mono); color: var(--gold); }
+  .empty { padding: 40px 22px; text-align: center; color: var(--muted); } .empty b { display: block; color: var(--ink); font: 700 18px var(--display); margin-bottom: 4px; }
+
+  .panel { padding: 22px; } .panel h3 { font-size: 18px; margin-bottom: 4px; }
+  .two { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+  @media (max-width: 900px) { .two { grid-template-columns: 1fr; } }
+  .stack { display: grid; gap: 18px; } .form { display: grid; gap: 14px; margin-top: 14px; }
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; } @media (max-width: 560px) { .g2 { grid-template-columns: 1fr; } }
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .seg button { text-align: left; padding: 14px; border: 1.5px solid var(--line); border-radius: 13px; background: #fff; }
+  .seg button small { display: block; color: var(--muted); font-weight: 400; font-size: 12.5px; margin-top: 2px; }
+  .seg button[aria-pressed="true"].grant { border-color: var(--allow); background: var(--allow-bg); } .seg button[aria-pressed="true"].loan { border-color: var(--hold); background: var(--hold-bg); }
+  .note { padding: 13px 16px; border-radius: 13px; border: 1px solid var(--hold-line); background: var(--hold-bg); color: #6d3a07; font-size: 13.5px; } .note b { color: var(--hold); }
+  .note.ok { border-color: var(--allow-line); background: var(--allow-bg); color: #0d4f3b; } .note.ok b { color: var(--allow); }
+  .steps { display: grid; gap: 0; } .step { display: grid; grid-template-columns: 30px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px dashed var(--hair); } .step:last-child { border: 0; }
+  .dot { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font: 700 12px var(--body); background: var(--quiet); color: var(--muted); border: 1px solid var(--line); }
+  .dot.done { background: var(--allow-bg); color: var(--allow); border-color: var(--allow-line); } .dot.now { background: var(--gold); color: #fff; border-color: var(--gold); }
+  .step b { font-weight: 600; } .step small { display: block; color: var(--muted); font-size: 13px; }
+  .lab { display: grid; gap: 8px; margin-top: 12px; } .lab button { text-align: left; } .res { font-size: 13.5px; padding: 10px 13px; border-radius: 11px; border: 1px solid var(--block-line); background: var(--block-bg); color: #7d1f2e; margin-top: 4px; } .res b { color: var(--block); }
+
+  .modal { position: fixed; inset: 0; z-index: 40; background: rgba(15,42,46,.45); backdrop-filter: blur(6px); display: grid; place-items: center; padding: 18px; overflow-y: auto; }
+  .mbox { width: min(760px, 100%); max-height: calc(100vh - 36px); overflow-y: auto; border: 1px solid var(--line); border-radius: 22px; background: #fff; box-shadow: 0 30px 80px rgba(15,42,46,.25); padding: 26px; position: relative; }
+  .mbox.sm { width: min(440px, 100%); }
+  .mbox h2 { font-size: 26px; line-height: 1.15; margin-top: 10px; } .close { position: absolute; top: 14px; right: 14px; padding: 6px 11px; color: var(--muted); }
+  .who { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 0; } @media (max-width: 640px) { .who { grid-template-columns: 1fr; } }
+  .who div { padding: 11px 13px; border: 1px solid var(--hair); border-radius: 13px; background: #f6faf9; font-size: 12.5px; color: var(--muted); } .who b { display: block; font: 500 13px var(--mono); color: var(--ink); overflow-wrap: anywhere; margin-top: 2px; } .who .hi b { color: var(--gold); }
+  .actions { display: grid; gap: 12px; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--hair); }
+  .actions h3 { font-size: 16px; } .arow { display: grid; gap: 10px; padding: 14px; border: 1px solid var(--hair); border-radius: 14px; background: #f8fbfa; }
+  .inline { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; } .inline > label { flex: 1; min-width: 150px; }
+  .wopt { display: flex; justify-content: space-between; align-items: center; width: 100%; text-align: left; padding: 14px 16px; border-radius: 13px; border: 1px solid var(--line); background: #fff; margin-top: 8px; } .wopt:hover { border-color: var(--gold-deep); } .tagt { font: 600 11.5px var(--body); color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; white-space: nowrap; } a.wopt { text-decoration: none; color: inherit; font-weight: 600; } .wopt small { display: block; color: var(--muted); font-weight: 400; font-size: 12.5px; }
+  .toast { position: fixed; left: 50%; bottom: 22px; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; max-width: min(560px, 92vw); padding: 13px 18px; border-radius: 14px; border: 1px solid; font-weight: 500; z-index: 60; transition: all .3s; backdrop-filter: blur(10px); }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); } .toast { box-shadow: 0 14px 36px rgba(15,42,46,.18); } .toast.allow { background: #e8f6f0; color: #0d5a42; border-color: var(--allow-line); } .toast.block { background: #fdecef; color: #8f2233; border-color: var(--block-line); } .toast.quiet { background: #fff; color: var(--ink); border-color: var(--line); }
+  footer { margin: 44px 0 36px; padding-top: 18px; border-top: 1px solid var(--hair); color: var(--muted); font-size: 13.5px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .kv { display: grid; gap: 0; } .kv div { display: flex; justify-content: space-between; gap: 14px; padding: 11px 0; border-bottom: 1px solid var(--hair); font-size: 14.5px; } .kv div:last-child { border: 0; } .kv span { color: var(--muted); } .kv b { font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<header class="bar"><div class="wrap">
+  <div class="logo" id="home" role="link" tabindex="0" aria-label="CareFund home">
+    <svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="#0d8a7d"/><path d="M20 31s-9-5.6-9-12.2A5.3 5.3 0 0 1 20 15.6a5.3 5.3 0 0 1 9 3.2C29 25.4 20 31 20 31z" fill="#fff"/></svg>
+    CareFund
+  </div>
+  <nav class="nav" id="nav" aria-label="Main"></nav>
+  <div style="display:flex;gap:10px;align-items:center">
+    <span class="pill gold" id="modePill"></span>
+    <button class="b-ghost b-sm" id="walletBtn" hidden>Connect wallet</button>
+  </div>
+</div>
+<div class="mnav" id="mnav"></div></header>
+
+<div class="demo" id="demoBar" hidden><div class="wrap">
+  <span class="pill hold"><i></i> Demo · fictional cases, fictional NEAR</span>
+  <label>Acting as <select id="actor" aria-label="Acting as"></select></label>
+  <span>Balance <b id="bal">0 NEAR</b></span>
+  <span class="sp"></span>
+  <span>Clock <b id="clock"></b></span>
+  <button class="b-ghost b-sm" data-adv="7">+7 days</button><button class="b-ghost b-sm" data-adv="30">+30 days</button>
+  <button class="b-ghost b-sm" id="reset">Reset demo</button>
+</div></div>
+
+<main class="wrap" id="main">
+  <section id="v-cases">
+    <div class="hero">
+      <h1>Help that reaches the <em>right hand.</em></h1>
+      <p>Community grants and loans on NEAR. Every case is checked by a verifier. Medical money goes straight to the hospital or pharmacy, never to a personal wallet. If a goal is missed, donors are refunded automatically.</p>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="sec"><div><h2>Open cases</h2><div class="sub" id="casesSub"></div></div><div class="filters" id="kindF"></div></div>
+    <div class="filters" id="catF" style="margin-bottom:16px"></div>
+    <div class="grid" id="grid"></div>
+    <div class="panel card" id="labBox" hidden style="margin-top:30px">
+      <h3>Try to break the rules</h3>
+      <p class="sub" style="margin:2px 0 0">These moves run against the same rules the smart contract enforces. Nothing is saved.</p>
+      <div class="lab" id="lab"></div>
+    </div>
+  </section>
+
+  <section id="v-hosp" hidden>
+    <div class="hero" style="padding-top:34px">
+      <h1>Donate to <em>hospitals</em> that have been checked.</h1>
+      <p>Hospitals, clinics, rehabilitation centres and NGOs register with their licence, are approved by the platform owner, and can then open a campaign. Every campaign is verified by a <b>different</b> verifier before anyone can give.</p>
+      <div class="inline" style="margin-top:20px" id="hospCta"></div>
+    </div>
+    <div class="sec"><div><h2>Registered providers</h2><div class="sub" id="provSub"></div></div></div>
+    <div class="grid" id="provGrid"></div>
+    <div class="sec"><div><h2 id="campTitle">Hospital campaigns</h2><div class="sub" id="campSub"></div></div></div>
+    <div class="grid" id="campGrid"></div>
+  </section>
+
+  <section id="v-ask" hidden>
+    <div class="sec"><div><h2>Ask for help</h2><div class="sub">Your request stays pending until the verifier you choose approves it. Nothing is paid out before that.</div></div></div>
+    <div class="two"><div class="card panel"><form class="form" id="askForm" autocomplete="off"></form></div>
+    <div class="stack">
+      <div class="card panel"><h3>What happens next</h3><div class="steps">
+        <div class="step"><span class="dot now">1</span><div><b>You send the request</b><small>Only a fingerprint (hash) of your documents goes on-chain. The files stay with you.</small></div></div>
+        <div class="step"><span class="dot">2</span><div><b>The verifier checks your documents</b><small>They set the payee wallet (hospital, pharmacy, provider). For a loan they also lock a guarantee.</small></div></div>
+        <div class="step"><span class="dot">3</span><div><b>Donors or lenders fund it</b><small>Money waits inside the contract. Missed goal means everyone is refunded.</small></div></div>
+        <div class="step"><span class="dot">4</span><div><b>Money is released in milestones</b><small>Each release needs a bill or proof from the verifier.</small></div></div>
+      </div></div>
+      <div class="note"><b>Honest limits.</b> This is a prototype on testnet. No real money, no real hospitals. Real use would need legal approval and identity checks.</div>
+    </div></div>
+  </section>
+
+  <section id="v-desk" hidden>
+    <div class="sec"><div><h2>Verifier desk</h2><div class="sub" id="deskSub"></div></div></div>
+    <div class="grid" id="deskGrid"></div>
+    <div class="card panel" id="adminBox" style="margin-top:22px" hidden><h3>Platform owner</h3><p class="sub" style="margin:2px 0 8px">The owner decides who counts as a verifier. Frozen cases can be reviewed and released again.</p><div id="adminBody"></div></div>
+  </section>
+
+  <section id="v-me" hidden>
+    <div class="sec"><div><h2>My activity</h2><div class="sub" id="meSub"></div></div></div>
+    <div class="stats" id="meStats"></div>
+    <div class="grid" id="meGrid"></div>
+  </section>
+
+  <section id="v-audit" hidden>
+    <div class="sec"><div><h2>Audit trail</h2><div class="sub" id="auSub"></div></div><div id="auLink"></div></div>
+    <div class="stats" id="auStats"></div>
+    <div class="card" style="margin-top:6px"><div class="ph"><label class="f" style="min-width:260px">Show<select id="auCase"></select></label></div><div id="auList"></div></div>
+  </section>
+
+  <section id="v-how" hidden>
+    <div class="sec"><div><h2>How CareFund keeps money safe</h2><div class="sub">A contract cannot know if a story is true. So it limits what a false story can do.</div></div></div>
+    <div class="two"><div class="stack">
+      <div class="card panel"><h3>Eight safeguards</h3><div class="steps">
+        <div class="step"><span class="dot done">1</span><div><b>Registered verifiers</b><small>A hospital, doctor or NGO the owner has approved must check every case before anyone can donate.</small></div></div>
+        <div class="step"><span class="dot done">2</span><div><b>Money goes to the provider</b><small>A grant can never be paid to the requester's own wallet. The verifier sets the hospital or pharmacy wallet.</small></div></div>
+        <div class="step"><span class="dot done">3</span><div><b>Milestones with proof</b><small>Funds sit in escrow and are released in parts, each against the fingerprint of a bill.</small></div></div>
+        <div class="step"><span class="dot done">4</span><div><b>Automatic refunds</b><small>Goal missed, case cancelled or frozen: donors withdraw what has not been released.</small></div></div>
+        <div class="step"><span class="dot done">5</span><div><b>Reports come from donors, weighted by money</b><small>Only people who gave can report. Two or more donors holding 25% of the money together freeze the case. Throwaway accounts have no say.</small></div></div>
+        <div class="step"><span class="dot done">6</span><div><b>Loans: guarantee and record</b><small>The verifier locks 20% of the loan. If repayment is missed, anyone can call a default: the guarantee goes to lenders and the borrower is blocked from new loans.</small></div></div>
+        <div class="step"><span class="dot done">7</span><div><b>Hospitals are approved, and checked twice</b><small>A provider applies with its licence fingerprint and the owner approves it. Its own campaigns must be verified by a different verifier, and are paid to the hospital itself.</small></div></div>
+        <div class="step"><span class="dot done">8</span><div><b>Verifiers put money at stake</b><small>Every verifier locks 5% of a grant (20% of a loan). It returns when the case completes. If the owner confirms fraud, the stake is paid to the donors on top of their refund and the verifier is removed.</small></div></div>
+      </div></div>
+    </div><div class="stack">
+      <div class="card panel"><h3>Rules at a glance</h3><div class="kv" id="rules"></div></div>
+      <div class="note"><b>What this does not solve.</b> A verifier can still be fooled or dishonest, and no contract can force a borrower to repay. These safeguards reduce the damage, they do not remove the risk. Loans carry real risk for lenders.</div>
+      <div class="note ok"><b>Prototype.</b> Testnet NEAR only. Verifiers shown in the demo are fictional. Real use needs legal review and identity checks.</div>
+    </div></div>
+  </section>
+
+  <footer><span>CareFund · built at NEAR HACKATHON · <a href="https://github.com/sasindu-smart/carefund" target="_blank" rel="noopener">source</a></span><span>Independent from <a href="https://github.com/sasindu-smart/allowance" target="_blank" rel="noopener">Allowance</a>, my other hackathon project.</span></footer>
+</main>
+
+<div class="modal" id="sheet" hidden role="dialog" aria-modal="true"><div class="mbox" id="sheetBody"></div></div>
+<div class="modal" id="wmodal" hidden role="dialog" aria-modal="true"><div class="mbox sm"><h2 id="wtitle">Connect a wallet</h2><p class="sub" style="margin:8px 0 4px" id="wintro">You approve every action in your own wallet. Your keys never touch this app.</p><div id="wlist"></div><div class="inline" style="margin-top:14px"><button class="b-ghost" id="wclose">Cancel</button></div></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="/config.js"></script>
+<script type="module" src="/app.js"></script>
+</body>
+</html>

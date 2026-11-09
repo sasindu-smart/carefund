@@ -1,0 +1,12 @@
+{
+  "name": "carefund",
+  "version": "0.1.0",
+  "description": "Community grants and loans on NEAR where money goes to the provider, not to a personal wallet.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test contract/test/core.test.js test/server.test.js"
+  },
+  "license": "MIT",
+  "engines": { "node": ">=20" }
+}
