@@ -57,6 +57,23 @@ export function exec(fn, s, ctx, args) {
   return o;
 }
 
+export const AI_VERDICTS = ["green", "review", "red"];
+export const DEFAULT_AI_RULES = [
+  "You are a careful pre-screener for a community medical-aid fund. A human verifier makes the final decision; you only advise.",
+  "1. A grant must be paid to a hospital, clinic or pharmacy, never to the person asking.",
+  "2. The amount should be realistic for the treatment described. Flag amounts that look inflated.",
+  "3. The story must have a concrete need and a concrete provider. Flag vague or emotional-only stories.",
+  "4. Flag anything that exposes private medical details (full names, photos, ID numbers) in the public story.",
+  "5. Flag signs of a scam: urgency pressure, requests to pay a personal wallet, copied text, or contradictions.",
+  "6. For loans, check that the repayment plan is realistic for the amount.",
+  "Answer green only when nothing is wrong, red when there is a clear problem, review when a human must look closer.",
+].join("\n");
+
+function aiOf(s) {
+  s.ai ||= { version: 1, rules: DEFAULT_AI_RULES, history: [{ v: 1, at: "0", rules: DEFAULT_AI_RULES }] };
+  return s.ai;
+}
+
 export function newState(owner) {
   if (!owner) fail("owner is required");
   return { owner, verifiers: {}, providers: {}, nextId: 1, cases: {}, rep: {}, vrep: {}, audit: [] };
@@ -193,6 +210,53 @@ export function cancelCase(s, ctx, { id }) {
 
 // ---- verifier ----------------------------------------------------------------------------
 
+// The owner can change the rules the AI pre-screener is given. Every change is a new numbered version
+// that stays in the public history, and a case remembers which version looked at it.
+export function setAiRules(s, ctx, { rules }) {
+  if (ctx.caller !== s.owner) fail("Only the owner can change the AI rules");
+  noDeposit(ctx);
+  const text = String(rules || "").trim();
+  if (text.length < 40 || text.length > 2500) fail("The rules must be between 40 and 2500 characters");
+  const ai = aiOf(s);
+  if (text === ai.rules) fail("These rules are already the current version");
+  ai.version += 1;
+  ai.rules = text;
+  ai.history.push({ v: ai.version, at: str(ctx.now), rules: text });
+  if (ai.history.length > 20) ai.history.splice(0, ai.history.length - 20);
+  return out({ version: ai.version }, [ev("ai_rules_updated", { version: ai.version, chars: text.length })]);
+}
+
+// The verifier records what the AI pre-screener said about a pending case. It is advice only:
+// nothing in the contract moves money because of it.
+export function attachAiCheck(s, ctx, { id, verdict, report_hash, rules_version }) {
+  noDeposit(ctx);
+  const c = getCase(s, id);
+  if (ctx.caller !== c.verifier || !s.verifiers[ctx.caller]) fail("Only the chosen, registered verifier can record an AI check");
+  if (c.status !== "pending") fail("Case is not pending");
+  if (!AI_VERDICTS.includes(verdict)) fail("verdict must be green, review or red");
+  if (!/^[0-9a-f]{64}$/.test(String(report_hash || ""))) fail("report_hash must be a SHA-256 hex string");
+  const ai = aiOf(s);
+  const rv = Number(rules_version);
+  if (!Number.isInteger(rv) || rv < 1 || rv > ai.version) fail("Unknown rules_version");
+  c.ai_check = { verdict, report_hash, rules_version: rv, at: str(ctx.now) };
+  return out({ verdict }, [ev("ai_check", { id: c.id, verdict, rules_version: rv })]);
+}
+
+export function aiRulesView(s) {
+  const ai = aiOf(s);
+  return { version: ai.version, rules: ai.rules, history: ai.history.map((h) => ({ v: h.v, at: h.at, rules: h.rules })) };
+}
+
+// Did the human decide differently from the AI? (review = the AI asked a human to look, so nothing to overrule)
+function aiOverruled(c, decision) {
+  if (!c.ai_check) return null;
+  const v = c.ai_check.verdict;
+  const overruled = (v === "green" && decision === "rejected") || (v === "red" && decision === "approved");
+  c.ai_check.final = decision;
+  c.ai_check.overruled = overruled;
+  return overruled;
+}
+
 export function verifyCase(s, ctx, { id, payee, doc_hash }) {
   const c = getCase(s, id);
   if (ctx.caller !== c.verifier || !s.verifiers[ctx.caller]) fail("Only the chosen, registered verifier can verify");
@@ -215,7 +279,10 @@ export function verifyCase(s, ctx, { id, payee, doc_hash }) {
   c.payee = payee;
   c.status = "open";
   c.deadline = str(ctx.now + B(c.days) * DAY_NS);
-  return out({ status: c.status }, [ev("case_verified", { id: c.id, verifier: ctx.caller, payee })]);
+  const ov = aiOverruled(c, "approved");
+  const evs = [ev("case_verified", { id: c.id, verifier: ctx.caller, payee })];
+  if (ov) evs.push(ev("ai_overruled", { id: c.id, ai: c.ai_check.verdict, decision: "approved" }));
+  return out({ status: c.status }, evs);
 }
 
 export function rejectCase(s, ctx, { id }) {
@@ -224,7 +291,10 @@ export function rejectCase(s, ctx, { id }) {
   if (ctx.caller !== c.verifier) fail("Only the chosen verifier can reject");
   if (c.status !== "pending") fail("Case is not pending");
   c.status = "rejected";
-  return out({ status: c.status }, [ev("case_rejected", { id: c.id })]);
+  const ov = aiOverruled(c, "rejected");
+  const evs = [ev("case_rejected", { id: c.id })];
+  if (ov) evs.push(ev("ai_overruled", { id: c.id, ai: c.ai_check.verdict, decision: "rejected" }));
+  return out({ status: c.status }, evs);
 }
 
 export function releaseMilestone(s, ctx, { id, evidence }) {

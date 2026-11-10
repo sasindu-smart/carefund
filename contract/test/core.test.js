@@ -324,3 +324,44 @@ test("campaign refunds and reports work like a grant", () => {
   assert.equal(F.refund(s, c(CAROL, 40n * DAY_NS), { id }).transfer.amount, n(4));
   assert.equal(F.providerList(s, 0n).find((p) => p.account === HOSP).campaigns, 1);
 });
+
+const H64 = "a".repeat(64);
+test("AI rules: only the owner changes them, every change is a numbered version", () => {
+  const s = mk();
+  assert.equal(F.aiRulesView(s).version, 1);
+  assert.throws(() => F.setAiRules(s, c(ALICE), { rules: "x".repeat(60) }), /Only the owner/);
+  assert.throws(() => F.setAiRules(s, c(OWNER), { rules: "too short" }), /between 40 and 2500/);
+  assert.throws(() => F.setAiRules(s, c(OWNER), { rules: F.DEFAULT_AI_RULES }), /already the current/);
+  const r = F.exec(F.setAiRules, s, c(OWNER, 3n * DAY_NS), { rules: "Be strict about amounts. ".repeat(4) });
+  assert.equal(r.result.version, 2);
+  const v = F.aiRulesView(s);
+  assert.equal(v.version, 2); assert.equal(v.history.length, 2);
+  assert.equal(v.history[0].rules, F.DEFAULT_AI_RULES); // the old version stays readable
+  assert.equal(s.audit.at(-1).e, "ai_rules_updated");
+});
+
+test("AI check: only the case verifier records it, it is advice, and an override is logged", () => {
+  const s = mk(); const id = grant(s);
+  assert.throws(() => F.attachAiCheck(s, c(ALICE), { id, verdict: "green", report_hash: H64, rules_version: 1 }), /chosen, registered verifier/);
+  assert.throws(() => F.attachAiCheck(s, c(VER), { id, verdict: "great", report_hash: H64, rules_version: 1 }), /verdict/);
+  assert.throws(() => F.attachAiCheck(s, c(VER), { id, verdict: "red", report_hash: "nope", rules_version: 1 }), /SHA-256/);
+  assert.throws(() => F.attachAiCheck(s, c(VER), { id, verdict: "red", report_hash: H64, rules_version: 9 }), /rules_version/);
+  F.exec(F.attachAiCheck, s, c(VER), { id, verdict: "red", report_hash: H64, rules_version: 1 });
+  // the human disagrees with the AI and approves: allowed, and recorded
+  F.exec(F.verifyCase, s, c(VER, 1n * DAY_NS, STK), { id, payee: PAYEE, doc_hash: DOC });
+  assert.equal(s.cases[id].status, "open");
+  assert.equal(s.cases[id].ai_check.overruled, true);
+  assert.ok(s.audit.some((a) => a.e === "ai_overruled"));
+  // review means "a human must look": deciding either way is not an override
+  const id2 = grant(s);
+  F.attachAiCheck(s, c(VER), { id: id2, verdict: "review", report_hash: H64, rules_version: 1 });
+  F.exec(F.rejectCase, s, c(VER), { id: id2 });
+  assert.equal(s.cases[id2].ai_check.overruled, false);
+  // an AI check cannot be added after the decision
+  assert.throws(() => F.attachAiCheck(s, c(VER), { id, verdict: "green", report_hash: H64, rules_version: 1 }), /not pending/);
+});
+
+test("old contract state without AI rules still works (upgrade without losing data)", () => {
+  const s = mk(); delete s.ai;
+  assert.equal(F.aiRulesView(s).version, 1);
+});

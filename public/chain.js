@@ -25,6 +25,7 @@ export function createChain(cfg) {
     now: () => BigInt(Date.now()) * 1_000_000n,
     verifiers: async () => (verifiers = await view("get_verifiers")),
     providers: () => view("get_providers"),
+    aiRules: () => view("get_ai_rules"),
     audit: (f = {}) => view("get_audit", { limit: 100, ...f }),
     vstats: (a) => view("get_verifier_stats", { account: a }),
     categories: () => ["cancer", "surgery", "dialysis", "accident", "child-care", "medicine", "rehabilitation", "mental-health", "equipment", "free-treatment", "disaster", "education", "small-business", "farming", "other"],

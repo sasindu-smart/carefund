@@ -33,6 +33,16 @@ Crowdfunding for medical bills, rehabilitation and small businesses works on tru
 | Loan record | A default blocks that account from new loans. Each repaid loan raises the borrower's limit |
 | Approved hospitals | A hospital, clinic, rehabilitation centre or NGO applies with a licence fingerprint and the owner approves it. Its own campaigns must be verified by a **different** verifier and are paid to the hospital itself |
 
+## AI pre-check (advice only, a human decides)
+
+Before a verifier decides, they can run an **AI pre-check**. The AI reads the request against the platform's written rules and answers *green* (looks fine), *look closer*, or *red* (problem found), with short reasons.
+
+- **The AI never moves money and never decides.** The verifier approves or rejects. The contract has no code path where an AI answer releases funds.
+- **The owner can change the rules the AI is given** (Verifier desk, owner panel). Every save is a new numbered version kept in the contract (`set_ai_rules`, `get_ai_rules`) and shown in the public audit trail, so rules cannot be loosened quietly. A case remembers which version looked at it.
+- The verifier can record the AI's answer on-chain (`attach_ai_check`: verdict, rules version, SHA-256 of the report). If they then decide against it, the contract logs `ai_overruled`.
+- It uses [NEAR AI Cloud](https://cloud.near.ai) (private, TEE-backed inference) when `NEARAI_API_KEY` is set on the server (`NEARAI_MODEL` optional). Without a key it falls back to plain written checks and says so on screen. Case text is treated as untrusted: instructions inside a story are ignored and count as a scam signal.
+- Limits: the AI can be wrong, and the on-chain record is attached by the verifier, who could skip it. Do not send real patient data to any AI. The demo uses fictional text.
+
 ## Grants and loans
 
 - **Grant**: a gift, no repayment. Paid to the provider the verifier names (hospital, pharmacy, **rehabilitation centre**).
@@ -70,8 +80,9 @@ Run the tests (rules + server):
 
 ## Project layout
 
-    contract/src/fund-core.js   all rules, no SDK imports (27 tests)
+    contract/src/fund-core.js   all rules, no SDK imports (30 tests)
     contract/src/index.js       thin near-sdk-js wrapper
+    ai.js                       AI pre-check (NEAR AI Cloud + written fallback)
     public/                     landing.html (home), app.html + app.js (the app), demo.js = in-browser backend, chain.js + wallet.js = testnet)
     server.js                   zero-dependency static server
 

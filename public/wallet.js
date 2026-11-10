@@ -15,7 +15,7 @@ const WALLETS = [
   { id: "here-wallet", label: "HERE Wallet", note: "Mobile app or web.", pkg: mod("here-wallet"), fn: "setupHereWallet" },
   { id: "my-near-wallet", label: "MyNearWallet", note: "Redirects.", pkg: mod("my-near-wallet"), fn: "setupMyNearWallet" },
 ];
-const METHODS = ["create_case", "cancel_case", "verify_case", "reject_case", "release_milestone", "withdraw_stake", "donate", "refund", "claim_repayment", "repay", "mark_default", "flag_case", "unfreeze", "add_verifier", "remove_verifier", "apply_provider", "approve_provider", "reject_provider", "confirm_fraud"];
+const METHODS = ["create_case", "cancel_case", "verify_case", "reject_case", "release_milestone", "withdraw_stake", "donate", "refund", "claim_repayment", "repay", "mark_default", "flag_case", "unfreeze", "add_verifier", "remove_verifier", "apply_provider", "approve_provider", "reject_provider", "confirm_fraud", "set_ai_rules", "attach_ai_check"];
 
 let cfg = null, selector = null, loading = null;
 const listeners = new Set();
@@ -29,7 +29,7 @@ async function load() {
   loading = (async () => {
     const { setupWalletSelector } = await import(CORE);
     const modules = [];
-    const loaded = await Promise.allSettled(WALLETS.map((w) => import(w.pkg).then((m) => m[w.fn]())));
+    const loaded = await Promise.allSettled(WALLETS.map((w) => Promise.race([import(w.pkg).then((m) => m[w.fn]()), new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 20000))])));
     loaded.forEach((r, i) => { if (r.status === "fulfilled") { modules.push(r.value); WALLETS[i].ok = true; } else { WALLETS[i].ok = false; } });
     if (!modules.length) throw new Error("No wallet libraries could be loaded. Check your internet connection.");
     selector = await setupWalletSelector({ network: cfg.network, modules });

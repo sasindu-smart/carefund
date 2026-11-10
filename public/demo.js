@@ -30,6 +30,7 @@ export const METHODS = {
   create_case: F.createCase, cancel_case: F.cancelCase, verify_case: F.verifyCase, reject_case: F.rejectCase,
   release_milestone: F.releaseMilestone, withdraw_stake: F.withdrawStake, donate: F.donate, refund: F.refund,
   claim_repayment: F.claimRepayment, repay: F.repay, mark_default: F.markDefault, flag_case: F.flagCase,
+  set_ai_rules: F.setAiRules, attach_ai_check: F.attachAiCheck,
 };
 
 function seed() {
@@ -111,6 +112,7 @@ export function createDemo() {
     reset: () => { try { localStorage.removeItem(KEY); } catch {} st = seed(); save(); },
     verifiers: async () => st.s.verifiers,
     providers: async () => F.providerList(st.s, now()),
+    aiRules: async () => F.aiRulesView(st.s),
     audit: async (f = {}) => F.auditList(st.s, { limit: 100, ...f }),
     vstats: async (a) => F.verifierStats(st.s, a),
     categories: () => F.CATEGORIES,

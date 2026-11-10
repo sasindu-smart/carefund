@@ -212,8 +212,15 @@ async function openCase(id) {
     const owing = B(c.goal) - B(c.repaid) - B(c.slashed || 0);
     if (owing > 0n) A.push(`<div class="arow"><div class="inline"><label class="f">Repay (NEAR)<input id="repayAmt" inputmode="decimal" value="${esc(fmt(owing / BigInt(Math.max(1, c.parts))))}"></label><button class="b-hold" data-do="repay">Repay</button></div><small class="sub">${fmt(owing)} NEAR still owed.</small></div>`);
   }
+  if (c.ai_check && c.status !== "pending") {
+    const ck = c.ai_check, ov = ck.overruled;
+    A.push(`<div class="arow ai"><b>AI advice and the human decision</b><div class="aiRes">${aiChip(ck.verdict)} <small>rules v${ck.rules_version} · the verifier ${c.status === "rejected" ? "rejected" : "approved"} this case${ov ? ", <b>against the AI's advice</b>" : ck.verdict === "review" ? " after looking closer" : ", in line with the AI"}.</small></div></div>`);
+  }
   // verifier
   if (isVer && c.status === "pending") {
+    A.push(`<div class="arow ai" id="aiBox"><b>AI pre-check <span class="tagt">advice only</span></b>
+      <div class="sub">An AI reads the request against the platform's rules and says green, look closer, or red. <b>You decide.</b> The AI never moves money and can be overruled.</div>
+      ${c.ai_check ? `<div class="aiRes">${aiChip(c.ai_check.verdict)} <small>Recorded on-chain with rules version ${c.ai_check.rules_version}.</small></div>` : `<div id="aiOut"></div><div class="inline"><button class="b-ghost" data-do="aicheck">Run AI pre-check</button></div>`}</div>`);
     const need = (B(c.goal) * (c.kind === "loan" ? F.CFG.GUARANTEE_PM : F.CFG.STAKE_PM)) / 1000n;
     A.push(`<div class="arow"><b>Check this request</b>
       <label class="f">Payee wallet (who is paid)<input id="vPayee" ${c.kind === "campaign" ? "readonly" : ""} placeholder="${c.kind === "grant" ? "hospital or pharmacy wallet, not the patient" : "the borrower or a supplier"}" value="${c.kind !== "grant" ? esc(c.requester) : ""}"></label>
@@ -252,8 +259,36 @@ async function openCase(id) {
   const ef = $("evFile"); if (ef) ef.onchange = async () => { if (ef.files[0]) $("evHash").value = await hashBlob(ef.files[0]); };
 }
 
+const AI_LABEL = { green: ["Looks fine", "ok"], review: ["Look closer", "hold"], red: ["Problem found", "block"] };
+const aiChip = (v) => `<span class="tag st ${(AI_LABEL[v] || [])[1] || ""}">AI: ${esc((AI_LABEL[v] || [v])[0])}</span>`;
+async function runAiCheck(btn, c) {
+  const out = $("aiOut"); btn.disabled = true; out.innerHTML = `<p class="sub">Asking the AI…</p>`;
+  try {
+    const rules = await be.aiRules();
+    const r = await fetch("/api/precheck", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({
+      rules: rules.rules, rules_version: rules.version,
+      case: { kind: c.kind, category: c.category, title: c.title, story: c.story, goal_near: fmt(c.goal), days: c.days, parts: c.parts, requester: c.requester, payee: $("vPayee") ? $("vPayee").value : "" },
+    }) });
+    const j = await r.json(); if (!r.ok) throw new Error(j.error || "AI check failed");
+    lastAi = j;
+    out.innerHTML = `<div class="aiRes">${aiChip(j.verdict)} <small>${j.source === "near-ai" ? "NEAR AI · " + esc(j.model) : "Written checks (no AI key on this server)"} · rules v${j.rules_version}</small>
+      ${j.reasons.length ? `<ul class="aiList ok">${j.reasons.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}
+      ${j.concerns.length ? `<ul class="aiList bad">${j.concerns.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}
+      ${j.note ? `<small class="sub">${esc(j.note)}</small>` : ""}
+      <div class="inline"><button class="b-ghost b-sm" id="aiRecord">Record this on-chain</button><small class="sub">Optional. It shows donors the AI's advice and whether you agreed.</small></div></div>`;
+    $("aiRecord").onclick = async (e) => {
+      e.target.disabled = true;
+      try { const o = await be.call("attach_ai_check", { id: c.id, verdict: j.verdict, report_hash: j.report_hash, rules_version: j.rules_version }); toast(o.hash ? "Sent. It can take a few seconds to confirm." : "AI advice recorded.", "allow"); if (o.hash) await new Promise((x) => setTimeout(x, 4000)); await render(); if (openId) await openCase(openId); }
+      catch (err) { e.target.disabled = false; toast(errMsg(err), "block"); }
+    };
+  } catch (e) { out.innerHTML = `<p class="sub">${esc(errMsg(e))}</p>`; }
+  btn.disabled = false;
+}
+let lastAi = null;
+
 async function doAction(btn, c) {
   const k = btn.dataset.do;
+  if (k === "aicheck") return runAiCheck(btn, c);
   const v = (id) => ($(id) ? $(id).value.trim() : "");
   try {
     let method, args = { id: c.id }, dep = 0n, ok = "Done";
@@ -407,11 +442,21 @@ async function renderDesk() {
     const frozen = all.filter((c) => c.status === "frozen");
     const provs = await be.providers();
     const pend = provs.filter((p) => p.status === "pending");
+    const ai = await be.aiRules();
     $("adminBody").innerHTML = `<h3 style="font-size:15px;margin:6px 0">Hospital applications</h3>
       ${pend.length ? pend.map((p) => `<div class="appl"><div><b>${esc(p.name)}</b><small>${esc(PTYPE[p.type] || p.type)} · ${esc(p.country)} · <span class="mono">${esc(p.account)}</span><br>licence ${esc(short(p.license_hash))}</small></div><div class="inline"><button class="b-ok b-sm" data-ap="approve_provider" data-acc="${esc(p.account)}">Approve</button><button class="b-danger b-sm" data-ap="reject_provider" data-acc="${esc(p.account)}">Reject</button></div></div>`).join("") : `<p class="sub" style="margin:4px 0 10px">No applications waiting.</p>`}
       <h3 style="font-size:15px;margin:14px 0 6px">Approved verifiers and providers</h3>
       <div class="kv">${Object.entries(VERS).map(([id, v]) => `<div><span>${esc(v.name)}${v.provider ? " · provider" : ""}</span><b class="mono">${esc(id)}</b></div>`).join("")}</div>
+      <h3 style="font-size:15px;margin:14px 0 6px">AI rules <span class="tagt">version ${ai.version}</span></h3>
+      <p class="sub" style="margin:0 0 6px">These are the instructions the AI pre-check reads before every review. Each save becomes a new numbered version in the public audit trail. The AI only advises; verifiers decide.</p>
+      <textarea id="aiRulesTxt" rows="9" maxlength="2500" style="width:100%;font:13px/1.45 var(--mono,monospace);padding:10px;border:1px solid var(--line);border-radius:10px">${esc(ai.rules)}</textarea>
+      <div class="inline" style="margin-top:6px"><button class="b-ok b-sm" id="aiRulesSave">Save as version ${ai.version + 1}</button><small class="sub">${ai.history.length} version${ai.history.length === 1 ? "" : "s"} kept.</small></div>
       <p class="sub" style="margin:12px 0 0">${frozen.length ? "Frozen cases: " + frozen.map((c) => `<a href="#" data-fz="${c.id}">#${c.id} ${esc(c.title)}</a>`).join(", ") : "No frozen cases."}</p>`;
+    $("aiRulesSave").onclick = async (e) => {
+      e.target.disabled = true;
+      try { const o = await be.call("set_ai_rules", { rules: $("aiRulesTxt").value }); toast(o.hash ? "Sent. It can take a few seconds to confirm." : "New AI rules saved as a new version.", "allow"); if (o.hash) await new Promise((x) => setTimeout(x, 4000)); await render(); }
+      catch (err) { e.target.disabled = false; toast(errMsg(err), "block"); }
+    };
     document.querySelectorAll("[data-fz]").forEach((a) => (a.onclick = (e) => { e.preventDefault(); openCase(a.dataset.fz); }));
     document.querySelectorAll("[data-ap]").forEach((b) => (b.onclick = async () => {
       b.disabled = true;
@@ -464,6 +509,9 @@ function auditText(e) {
     case "verifier_removed": return `Owner removed verifier ${who(d.account)}`;
     case "provider_applied": return `${who(d.account)} applied to register as a provider (${esc(d.name)})`;
     case "provider_approved": return `Owner approved provider ${who(d.account)}`;
+    case "ai_check": return `The verifier recorded AI advice <b>${esc(d.verdict)}</b> for ${id} (rules v${d.rules_version})`;
+    case "ai_overruled": return `The verifier decided <b>${esc(d.decision)}</b> on ${id}, against the AI's advice (${esc(d.ai)})`;
+    case "ai_rules_updated": return `Owner changed the AI rules. Now version <b>${d.version}</b> (${d.chars} characters)`;
     case "provider_rejected": return `Owner rejected provider ${who(d.account)}`;
     default: return esc(e.e);
   }
@@ -532,14 +580,17 @@ if (demo) {
     $("wlist").querySelectorAll("[data-id]").forEach((b) => (b.onclick = async () => { $("wmodal").hidden = true; try { await window.Wallet.connect(b.dataset.id); } catch (e) { toast(errMsg(e), "block"); } }));
   };
   $("wclose").onclick = () => ($("wmodal").hidden = true);
-  window.Wallet.onChange(() => { paintTop(); render(); });
 }
 
 (async function boot() {
-  if (!demo) await import("/wallet.js");
-  try { await be.ready(); } catch (e) { toast(errMsg(e), "block"); }
+  if (!demo) { await import("/wallet.js"); window.Wallet.onChange(() => { paintTop(); render(); }); }
+  // Testnet mode: draw the page first, wallet libraries (loaded from a CDN) must never block it.
+  const ready = be.ready().catch((e) => toast(errMsg(e), "block"));
   const h = (location.hash || "").slice(1);
   view = NAV.some(([k]) => k === h) ? h : "cases";
   VIEWS.forEach((k) => ($("v-" + k).hidden = k !== view));
-  paintNav(); paintTop(); await render();
+  paintNav(); paintTop();
+  if (demo) { await ready; paintTop(); await render(); return; }
+  render();
+  ready.then(() => { paintTop(); render(); });
 })();

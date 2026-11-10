@@ -53,6 +53,8 @@ class CareFund {
   }
 
   // ---- admin
+  @call({}) set_ai_rules(a) { return this.run(F.setAiRules, a); }
+  @call({}) attach_ai_check(a) { return this.run(F.attachAiCheck, a); }
   @call({}) add_verifier(a) { return this.run(F.addVerifier, a); }
   @call({}) remove_verifier(a) { return this.run(F.removeVerifier, a); }
   @call({}) unfreeze(a) { return this.run(F.unfreeze, a); }
@@ -101,6 +103,11 @@ class CareFund {
   @view({})
   list_cases(a) {
     return F.listView(this.load(), near.blockTimestamp(), a || {});
+  }
+
+  @view({})
+  get_ai_rules() {
+    return F.aiRulesView(this.load());
   }
 
   @view({})
