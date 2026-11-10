@@ -271,7 +271,7 @@ async function runAiCheck(btn, c) {
     const rules = await be.aiRules();
     const r = await fetch("/api/precheck", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({
       rules: rules.rules, rules_version: rules.version,
-      case: { kind: c.kind, category: c.category, title: c.title, story: c.story, goal_near: fmt(c.goal), days: c.days, parts: c.parts, requester: c.requester, payee: $("vPayee") ? $("vPayee").value : "" },
+      case: { kind: c.kind, category: c.category, title: c.title, story: c.story, goal_near: fmt(c.goal), days: c.days, parts: c.parts, requester: c.requester, payee: ($("vPayee") && $("vPayee").value) || "(the verifier has not entered the payee yet)" },
     }) });
     const j = await r.json(); if (!r.ok) throw new Error(j.error || "AI check failed");
     lastAi = j;

@@ -49,25 +49,25 @@ function seed() {
   const H = (i) => hash(i);
 
   // 1. Grant, 64% funded, paid straight to a hospital pharmacy.
-  run(F.createCase, "ana.testnet", 38, { kind: "grant", category: "cancer", title: "Chemotherapy, cycle 3 of 6", story: "Example case. A teacher needs the next cycle of treatment. The hospital has confirmed the diagnosis and the cost.", doc_hash: H(1), goal: String(n(500)), verifier: "stmarys-nairobi.testnet", days: 30, milestones: 2 });
+  run(F.createCase, "ana.testnet", 38, { kind: "grant", category: "cancer", title: "Chemotherapy, cycle 3 of 6", story: "A teacher needs the third of six chemotherapy cycles at the Cancer Institute in Colombo. The hospital has confirmed the diagnosis and written the cost of the cycle.", doc_hash: H(1), goal: String(n(500)), verifier: "stmarys-nairobi.testnet", days: 30, milestones: 2 });
   run(F.verifyCase, "stmarys-nairobi.testnet", 39, { id: 1, payee: "pharmacy-stmarys.testnet", doc_hash: H(1) }, n(25));
   [["carol.testnet", 120], ["dave.testnet", 100], ["erin.testnet", 60], ["frank.testnet", 40]].forEach(([a, x], i) => run(F.donate, a, 40 + i, { id: 1 }, n(x)));
 
   // 2. Loan, 40% funded, the co-op locked a guarantee.
-  run(F.createCase, "juan.testnet", 44, { kind: "loan", category: "farming", title: "Second water pump for the paddy field", story: "Example case. A farmer wants to irrigate a second plot and repay from the next harvest.", doc_hash: H(2), goal: String(n(20)), verifier: "coop-andes.testnet", days: 30, parts: 3, period_days: 30, milestones: 1 });
+  run(F.createCase, "juan.testnet", 44, { kind: "loan", category: "farming", title: "Second water pump for the paddy field", story: "A rice farmer wants to buy a second water pump for his paddy field and repay from the next harvest, in three equal parts.", doc_hash: H(2), goal: String(n(20)), verifier: "coop-andes.testnet", days: 30, parts: 3, period_days: 30, milestones: 1 });
   run(F.verifyCase, "coop-andes.testnet", 45, { id: 2, payee: "juan.testnet", doc_hash: H(2) }, n(4));
   run(F.donate, "carol.testnet", 46, { id: 2 }, n(5)); run(F.donate, "frank.testnet", 47, { id: 2 }, n(3));
 
   // 3. Grant, 88% funded, three days left.
-  run(F.createCase, "mei.testnet", 38, { kind: "grant", category: "dialysis", title: "Six months of dialysis sessions", story: "Example case. Regular dialysis sessions for a patient waiting for a transplant.", doc_hash: H(3), goal: String(n(120)), verifier: "clinic-dhaka.testnet", days: 14, milestones: 3 });
+  run(F.createCase, "mei.testnet", 38, { kind: "grant", category: "dialysis", title: "Six months of dialysis sessions", story: "Regular dialysis sessions at Dhaka Community Clinic for a patient waiting for a kidney transplant. The clinic has quoted the cost of the six months.", doc_hash: H(3), goal: String(n(120)), verifier: "clinic-dhaka.testnet", days: 14, milestones: 3 });
   run(F.verifyCase, "clinic-dhaka.testnet", 39, { id: 3, payee: "dialysis-unit-dhaka.testnet", doc_hash: H(3) }, n(6));
   run(F.donate, "alice.testnet", 41, { id: 3 }, n(60)); run(F.donate, "dave.testnet", 42, { id: 3 }, n(46));
 
   // 4. Grant waiting for a verifier.
-  run(F.createCase, "bob.testnet", 49, { kind: "grant", category: "surgery", title: "Emergency appendix surgery", story: "Example case. Surgery was done last night, the family cannot cover the hospital bill.", doc_hash: H(4), goal: String(n(80)), verifier: "stmarys-nairobi.testnet", days: 21, milestones: 2 });
+  run(F.createCase, "bob.testnet", 49, { kind: "grant", category: "surgery", title: "Emergency appendix surgery", story: "Emergency appendix surgery was done last night at St Mary's Hospital in Nairobi. The family cannot cover the hospital bill of 80 NEAR, the invoice is attached.", doc_hash: H(4), goal: String(n(80)), verifier: "stmarys-nairobi.testnet", days: 21, milestones: 2 });
 
   // 5. A loan that is being repaid on time.
-  run(F.createCase, "lina.testnet", 5, { kind: "loan", category: "small-business", title: "Sewing machines for a tailoring shop", story: "Example case. A small tailoring business wants two more machines.", doc_hash: H(5), goal: String(n(12)), verifier: "ngo-manila.testnet", days: 30, parts: 3, period_days: 30, milestones: 1 });
+  run(F.createCase, "lina.testnet", 5, { kind: "loan", category: "small-business", title: "Sewing machines for a tailoring shop", story: "A small tailoring shop in Manila wants to buy two more sewing machines and repay in three parts from the shop income.", doc_hash: H(5), goal: String(n(12)), verifier: "ngo-manila.testnet", days: 30, parts: 3, period_days: 30, milestones: 1 });
   run(F.verifyCase, "ngo-manila.testnet", 6, { id: 4 + 1, payee: "lina.testnet", doc_hash: H(5) }, n(2.4));
   run(F.donate, "frank.testnet", 8, { id: 5 }, n(7)); run(F.donate, "erin.testnet", 9, { id: 5 }, n(5));
   run(F.releaseMilestone, "ngo-manila.testnet", 10, { id: 5, evidence: H(55) });
@@ -81,12 +81,12 @@ function seed() {
   run(F.applyProvider, "city-general-manila.testnet", 48, { name: "City General Hospital, Manila (example)", type: "hospital", country: "Philippines", license_hash: lic(4) });
   ["stmarys-nairobi.testnet", "clinic-dhaka.testnet", "cancer-institute-colombo.testnet"].forEach((a, i) => run(F.approveProvider, OWNER, 3 + i, { account: a }));
   // 8. A hospital campaign: the Colombo cancer hospital asks for chemotherapy chairs; Dhaka clinic verified it.
-  run(F.createCase, "cancer-institute-colombo.testnet", 42, { kind: "campaign", category: "equipment", title: "Six chemotherapy chairs for the cancer ward", story: "Example campaign. The ward treats 40 patients a day and has four chairs. New chairs shorten waiting lists.", doc_hash: H(8), goal: String(n(300)), verifier: "clinic-dhaka.testnet", days: 30, milestones: 2 });
+  run(F.createCase, "cancer-institute-colombo.testnet", 42, { kind: "campaign", category: "equipment", title: "Six chemotherapy chairs for the cancer ward", story: "The ward treats 40 patients a day and has four chairs. New chairs shorten waiting lists.", doc_hash: H(8), goal: String(n(300)), verifier: "clinic-dhaka.testnet", days: 30, milestones: 2 });
   run(F.verifyCase, "clinic-dhaka.testnet", 43, { id: 6, payee: "cancer-institute-colombo.testnet", doc_hash: H(8) }, n(15));
   [["alice.testnet", 70], ["dave.testnet", 55], ["erin.testnet", 40]].forEach(([a, x], i) => run(F.donate, a, 44 + i, { id: 6 }, n(x)));
 
   // 6. Rehabilitation: paid straight to the treatment centre, no name or photo.
-  run(F.createCase, "mei.testnet", 46, { kind: "grant", category: "rehabilitation", title: "12-week residential rehabilitation programme", story: "Example case. A young adult wants treatment for addiction. Anonymous on purpose: no name, no photo.", doc_hash: H(6), goal: String(n(90)), verifier: "clinic-dhaka.testnet", days: 30, milestones: 3 });
+  run(F.createCase, "mei.testnet", 46, { kind: "grant", category: "rehabilitation", title: "12-week residential rehabilitation programme", story: "A young adult wants a 12-week residential treatment programme for addiction at a licensed rehabilitation centre. Anonymous on purpose: no name, no photo.", doc_hash: H(6), goal: String(n(90)), verifier: "clinic-dhaka.testnet", days: 30, milestones: 3 });
   run(F.verifyCase, "clinic-dhaka.testnet", 47, { id: 7, payee: "recovery-centre-dhaka.testnet", doc_hash: H(6) }, n(4.5));
   run(F.donate, "alice.testnet", 48, { id: 7 }, n(30)); run(F.donate, "carol.testnet", 49, { id: 7 }, n(15));
 
