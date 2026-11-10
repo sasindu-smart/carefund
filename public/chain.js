@@ -23,7 +23,7 @@ export function createChain(cfg) {
     account: () => window.Wallet.state().account,
     owner: () => owner,
     now: () => BigInt(Date.now()) * 1_000_000n,
-    verifiers: async () => (verifiers = await view("get_verifiers")),
+    verifiers: async (force) => (force || !Object.keys(verifiers).length ? (verifiers = await view("get_verifiers")) : verifiers),
     providers: () => view("get_providers"),
     aiRules: () => view("get_ai_rules"),
     audit: (f = {}) => view("get_audit", { limit: 100, ...f }),

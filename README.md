@@ -66,8 +66,28 @@ Run the tests (rules + server):
 ## Testnet mode (real contract)
 
 1. Build and deploy `contract/` (steps in [contract/README.md](contract/README.md)).
-2. Start the site with the contract: `CONTRACT_ID=yourname-carefund.testnet npm start`
+2. Start the site with the contract: `CONTRACT_ID=yourname-carefund.testnet npm start` (to try the author's deployment: `CONTRACT_ID=carefund-sasindu.testnet npm start`)
 3. Connect a NEAR wallet (Meteor, Sender, Nightly, HERE, MyNearWallet). You sign every action yourself.
+
+## Proof on NEAR testnet
+
+The contract is deployed on testnet as **`carefund-sasindu.testnet`** ([all its transactions on NearBlocks](https://testnet.nearblocks.io/address/carefund-sasindu.testnet)). The whole path below was run on it, with a wallet and separate accounts for each role:
+
+| Step | Who | Transaction |
+|---|---|---|
+| Deploy + `init` | owner | [`GUmFeFsE…kqzZ8`](https://explorer.testnet.near.org/transactions/GUmFeFsEfJmX16epNbpfKa8bUyTW9tMqZULZmnmkqzZ8) |
+| Ask for help (grant, loan) | `sasindudev.testnet`, signed in a Meteor wallet | cases #1, #2, #3 in the contract |
+| Verifier checks the documents and locks a 0.1 NEAR stake, payee = a hospital account | `carefund-sasindu.testnet` | [`FcLyzfuj…2NzyYb`](https://explorer.testnet.near.org/transactions/FcLyzfujUnkHdqgauSFB2o3vLCJuGNvspk9WEJ2NzyYb) |
+| Donor gives 2 NEAR, the goal is reached | `carefund-donor-sasindu.testnet` | [`JD1EkDfY…p9bp`](https://explorer.testnet.near.org/transactions/JD1EkDfYRS3Ni1MtwPN5qaEaKKjj99pYPkLvCU11p9bp) |
+| Verifier releases the milestone against a bill fingerprint: **2 NEAR go to the hospital**, not to the requester | `carefund-sasindu.testnet` | [`3ZtMadis…NMwA`](https://explorer.testnet.near.org/transactions/3ZtMadisbE1248BBMUTdQLDdFqT2onvEXvzLg3NdMMwA) |
+| Contract upgrade with the AI-rules feature (state kept) | owner | [`3SZcYdjs…mibm`](https://explorer.testnet.near.org/transactions/3SZcYdjswJ8v3iAFNdYhLMLDjzjoBSEmb5XYbCQfmibm) |
+
+You can read the live state yourself, no wallet needed:
+
+    near contract call-function as-read-only carefund-sasindu.testnet list_cases json-args '{}' network-config testnet now
+    near contract call-function as-read-only carefund-sasindu.testnet get_ai_rules json-args '{}' network-config testnet now
+
+The testnet site reads the contract through the FastNEAR public RPC (`https://test.rpc.fastnear.com`, change it with `NEAR_RPC`). The verifier and donor steps above were sent with near-cli because each role needs its own account; the contract rules are the same either way.
 
 ## Honest limits
 

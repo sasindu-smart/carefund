@@ -20,7 +20,7 @@ const cfg = {
   mode: contractId ? "chain" : "demo",
   contractId,
   network,
-  rpc: process.env.NEAR_RPC || (network === "mainnet" ? "https://rpc.mainnet.near.org" : "https://rpc.testnet.near.org"),
+  rpc: process.env.NEAR_RPC || (network === "mainnet" ? "https://free.rpc.fastnear.com" : "https://test.rpc.fastnear.com"),
 };
 
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".json": "application/json", ".txt": "text/plain; charset=utf-8" };

@@ -41,7 +41,11 @@ function toast(msg, kind = "quiet") {
   const t = $("toast"); t.textContent = msg; t.className = "toast show " + kind;
   clearTimeout(toast.t); toast.t = setTimeout(() => (t.className = "toast " + kind), kind === "block" ? 6500 : 3800);
 }
-const errMsg = (e) => (e && e.message ? e.message.replace(/^.*?Error:\s*/, "") : String(e));
+const errMsg = (e) => {
+  const raw = e && e.message ? e.message : String(e);
+  const m = raw.match(/Smart contract panicked:\s*([^\\"\n]+)/); // readable rule from a failed on-chain call
+  return m ? m[1].trim() : raw.replace(/^.*?Error:\s*/, "");
+};
 
 async function hashBlob(blob) {
   const buf = await blob.arrayBuffer();
@@ -414,6 +418,7 @@ async function renderAsk() {
   if (demo) $("aSample").onclick = async () => { askHash = await hashText("sample-" + Math.random()); $("aHash").value = askHash; };
   $("askForm").onsubmit = async (e) => {
     e.preventDefault();
+    if (!$("aHash").value) { toast("Choose a document first. Only its fingerprint is saved, the file stays in your browser.", "block"); return; }
     const b = $("aSend"); b.disabled = true;
     try {
       const a = { kind: askKind, category: $("aCat").value, title: $("aTitle").value, story: $("aStory").value, doc_hash: $("aHash").value, goal: String(toYocto($("aGoal").value)), verifier: $("aVer").value, days: Number($("aDays").value), milestones: Number($("aMs").value) };
@@ -470,8 +475,8 @@ async function renderDesk() {
 async function renderMe() {
   const me = be.account();
   if (!me) { $("meSub").textContent = "Connect a wallet to see your cases."; $("meStats").innerHTML = ""; $("meGrid").innerHTML = `<div class="card empty" style="grid-column:1/-1"><b>Not connected</b>Connect your wallet first.</div>`; return; }
-  const all = await be.list({});
-  const rep = await be.rep(me);
+  $("meSub").textContent = me + (demo ? "" : " · loading from NEAR testnet…");
+  const [all, rep] = await Promise.all([be.list({}), be.rep(me)]);
   const entries = await Promise.all(all.map(async (c) => ({ c, av: await be.acct(c.id, me) })));
   const mine = entries.filter(({ c, av }) => c.requester === me || c.verifier === me || (av && B(av.contributed) > 0n));
   const given = entries.reduce((t, { av }) => t + B(av ? av.contributed : 0), 0n);
@@ -545,7 +550,7 @@ function renderHow() {
 }
 
 async function render() {
-  VERS = await be.verifiers();
+  VERS = await be.verifiers(view === "desk");
   if (view === "cases") await renderCases();
   else if (view === "hosp") await renderHosp();
   else if (view === "ask") await renderAsk();
